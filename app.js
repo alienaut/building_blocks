@@ -64,4 +64,9 @@ app.get('/blocks', function(request, response) {
 	}
 });
 
+app.delete('/blocks/:name', function(request, response){
+	delete blocks[request.blockName];
+	response.sendStatus(200);
+});
+
 app.listen(3000);

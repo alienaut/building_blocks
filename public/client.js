@@ -16,11 +16,27 @@ $(function(){
 		});
 	});
 
+	$('.block-list').on('click', 'a[data-block]', function(event){
+		event.preventDefault();
+		if(!confirm('Are you sure?')) { return false; }
+
+		var target = $(event.currentTarget);
+
+		$.ajax({
+			type: 'DELETE',
+			url: '/blocks/' + target.data('block')
+		}).done(function(){
+			target.parent('li').remove();
+		});
+	});
+
 	function appendToList(blocks) {
 		var list = [];
 		for(var i in blocks){
 			block = blocks[i];
-			var content = '<a href="/blocks/' + block +'">' + block + '</a>'; 
+			var content = '<a href="/blocks/' + block +'">' + block + '</a> ' + 
+			'<a href="#" data-block=' + block +'"> x </a>';
+
 			list.push($('<li>', { html: content }));
 		}
 		$('.block-list').append(list);
