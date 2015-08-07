@@ -31,42 +31,33 @@ app.param('name', function(request, response, next){
 	next();
 });
 
-app.post('/blocks', parseUrlencoded, function(request, response){
-	var newBlock = request.body;
-	blocks[newBlock.name] = newBlock.description;
-	response.status(201).json(newBlock.name);
-});
+app.route('/blocks')
+	.get(function(request, response) {
+		blocks = Object.keys(blocks)
+		if(request.query.limit >= 0){
+			response.json(blocks.slice(0, request.query.limit));
+		} else {
+			response.json(blocks);
+		}
+	})
+	.post(parseUrlencoded, function(request, response){
+		var newBlock = request.body;
+		blocks[newBlock.name] = newBlock.description;
+		response.status(201).json(newBlock.name);
+	});
 
-app.get('/blocks/:name', function(request, response){
-	var description = blocks[request.blockName];
-	if(!description){
-		response.status(404).json("No description found for " + request.params.name);
-	} else {
-		response.json(description);
-	}
-});
-
-app.get('/locations/:name', function(request, response){
-	var description = locations[request.blockName];
-	if(!description){
-		response.status(404).json("No description found for " + request.params.name);
-	} else {
-		response.json(description);
-	}
-});
-
-app.get('/blocks', function(request, response) {
-	blocks = Object.keys(blocks)
-	if(request.query.limit >= 0){
-		response.json(blocks.slice(0, request.query.limit));
-	} else {
-		response.json(blocks);
-	}
-});
-
-app.delete('/blocks/:name', function(request, response){
-	delete blocks[request.blockName];
-	response.sendStatus(200);
-});
+app.route('/blocks/:name')
+	.get(function(request, response){
+		var description = locations[request.blockName];
+		if(!description){
+			response.status(404).json("No description found for " + request.params.name);
+		} else {
+			response.json(description);
+		}
+	})
+	.delete(function(request, response){
+		delete blocks[request.blockName];
+		response.sendStatus(200);
+	});
 
 app.listen(3000);
