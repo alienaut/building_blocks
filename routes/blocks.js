@@ -4,51 +4,54 @@ var router = express.Router();
 var bodyParser = require('body-parser');
 var parseUrlencoded = bodyParser.urlencoded({ extended: false });
 
-blocks = {
-	'Fixed': 'Fastened securely in position',
-	'Movable': 'Capable of being moved',
-	'Rotating': 'Moving in a circle around its center'
-};
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/building_blocks');
 
-locations = {
-	'Fixed': 'First Floor',
-	'Movable': 'Second Floor',
-	'Rotating': 'Penthouse'
-}
+var Block = mongoose.model('Block', { name: String, description: String });
+var Location = mongoose.model('Location', { name: String, place: String });
 
 router.route('/')
 	.get(function(request, response) {
-		blocks = Object.keys(blocks)
-		if(request.query.limit >= 0){
-			response.json(blocks.slice(0, request.query.limit));
-		} else {
-			response.json(blocks);
-		}
+		Block
+			.find()
+			.select('name')
+			.limit(0 || request.query.limit)
+			.exec(function(err, blocks){
+				response.json(blocks);
+			});
 	})
 	.post(parseUrlencoded, function(request, response){
 		var newBlock = request.body;
-		blocks[newBlock.name] = newBlock.description;
-		response.status(201).json(newBlock.name);
+		var block = new Block({name: newBlock.name, description: newBlock.description});
+		block.save(function(err){
+			if(!err){
+				response.status(201).json(newBlock);
+			}
+		});
 	});
 
 router.route('/:name')
 	.all(function(request, response, next){
-		var name = request.params.name;
-		var block = name[0].toUpperCase() + name.slice(1).toLowerCase();
+		var block = request.params.name
 		request.blockName = block;
 		next();
 	})
 	.get(function(request, response){
-		var description = locations[request.blockName];
-		if(!description){
-			response.status(404).json("No description found for " + request.params.name);
-		} else {
-			response.json(description);
-		}
+		Block.findOne({name: request.blockName}, function(err, block){
+			if(err) return handleError(err);
+			if(block) {
+				response.status(200).json(block);
+			} else {
+				response.status(404).json("No description found for " + request.blockName);
+			}
+		});
 	})
 	.delete(function(request, response){
-		delete blocks[request.blockName];
-		response.sendStatus(200);
+		Block.findOneAndRemove({ name: request.blockName }, function(err, doc, result){
+			if(err) return handleError(err);
+			console.log(result);
+			response.sendStatus(200);
+		});
 	});
 
 module.exports = router;

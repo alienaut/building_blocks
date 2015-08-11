@@ -33,9 +33,9 @@ $(function(){
 	function appendToList(blocks) {
 		var list = [];
 		for(var i in blocks){
-			block = blocks[i];
+			block = blocks[i]['name'];
 			var content = '<a href="/blocks/' + block +'">' + block + '</a> ' + 
-			'<a href="#" data-block=' + block +'"> x </a>';
+			'<a href="#" data-block="' + block +'"> x </a>';
 
 			list.push($('<li>', { html: content }));
 		}
